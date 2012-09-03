@@ -1,0 +1,9 @@
+
+def options (opt):
+	opt.load ('compiler_cxx')
+
+def configure (conf):
+	conf.load ('compiler_cxx gtest')
+
+def build (bld):
+	bld.program (features='cxx gtest', source='gtest/gtest-all.cc gtest/gtest_main.cc', target='test')
