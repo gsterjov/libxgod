@@ -1,9 +1,22 @@
 
+SOURCES = ['File.cpp']
+
+GTEST_SOURCES = ['gtest/gtest-all.cc', 'gtest/gtest_main.cc']
+
+
 def options (opt):
 	opt.load ('compiler_cxx')
 
 def configure (conf):
-	conf.load ('compiler_cxx gtest')
+	conf.load ('compiler_cxx')
+	conf.check_cxx (lib='pthread', define_name='GTEST_HAS_PTHREAD', uselib_store='GTEST_PTHREAD')
 
 def build (bld):
-	bld.program (features='cxx gtest', source='gtest/gtest-all.cc gtest/gtest_main.cc', target='test')
+	bld.program (
+		features = 'cxx gtest',
+		source = SOURCES + GTEST_SOURCES,
+		target = 'test',
+		includes = '../include',
+		use = ['xgod', 'GTEST_PTHREAD'],
+		rpath = bld.env.XGOD_RPATH
+	)

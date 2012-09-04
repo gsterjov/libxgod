@@ -1,2 +1,7 @@
 build/
 *.pyc
+.waf*
+.cproject
+.project
+.pydevproject
+.lock*

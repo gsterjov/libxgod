@@ -117,7 +117,13 @@ read_string(FILE *stream, size_t offset, size_t len)
 XGODFile *
 xgod_file_new ()
 {
-	return malloc (sizeof(XGODFile));
+	XGODFile *file = malloc (sizeof(XGODFile));
+	file->media_id = NULL;
+	file->title_id = NULL;
+	file->title = NULL;
+	file->description = NULL;
+	
+	return file;
 }
 
 
