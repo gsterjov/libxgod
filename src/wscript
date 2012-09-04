@@ -1,5 +1,5 @@
 
-SOURCES = 'file.c'
+SOURCES = ['file.c', 'sha1.c']
 
 
 def options (opt):
@@ -10,6 +10,7 @@ def configure (conf):
 
 def build (bld):
 	bld.shlib (
+		features = 'c',
 		source = SOURCES,
 		includes = '../include ../include/xgod',
 		target = 'xgod',
