@@ -1,22 +1,30 @@
 
-SOURCES = ['File.cpp']
-
-GTEST_SOURCES = ['gtest/gtest-all.cc', 'gtest/gtest_main.cc']
+SOURCES = [
+	'file_test.c',
+	'all_tests.c',
+	'seatest/seatest.c'
+]
 
 
 def options (opt):
-	opt.load ('compiler_cxx')
+	opt.load ('compiler_c')
+
 
 def configure (conf):
-	conf.load ('compiler_cxx')
-	conf.check_cxx (lib='pthread', define_name='GTEST_HAS_PTHREAD', uselib_store='GTEST_PTHREAD')
+	conf.load ('compiler_c')
+
 
 def build (bld):
 	bld.program (
-		features = 'cxx gtest',
-		source = SOURCES + GTEST_SOURCES,
+		source = SOURCES,
 		target = 'test',
 		includes = '../include',
-		use = ['xgod', 'GTEST_PTHREAD'],
+		use = ['xgod'],
 		rpath = bld.env.XGOD_RPATH
 	)
+
+
+def test (ctx):
+	# use subprocess instead of waf rules so we can get the pretty shell colours
+	import subprocess
+	subprocess.call ([ctx.path.get_bld().abspath() + "/test"])
