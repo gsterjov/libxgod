@@ -23,41 +23,6 @@
 #include <iconv.h>
 
 
-/**
-	magic bytes - LIVE
-	
-	0x354 - media id 			(uint 32 BE)
-	0x360 - title id			(uint 32 BE)
-	0x412 - game title			(UTF-16 max 2304 bytes)
-	0xD12 - game description	(UTF-16 max 2432 bytes)
-	
-	-- type flags --
-	0x364 - platform			(byte)
-	0x365 - executable type		(byte)
-	0x366 - disc number			(byte)
-	0x367 - disc count			(byte)
-	
-	-- thumbnails --
-	0x1712 - thumbnail 1 length	(uint 32 BE)
-	0x1716 - thumbnail 2 length	(uint 32 BE)
-	0x171a - thumbnail 1 data		(PNG)
-	0x571a - thumbnail 2 data		(PNG)
- */
-enum HEADER_TYPES
-{
-	LIVE_HEADER_MEDIA_ID = 0x354,
-	LIVE_HEADER_TITLE_ID = 0x360,
-	LIVE_HEADER_TITLE = 0x412,
-	LIVE_HEADER_DESCRIPTION = 0xD12,
-	
-	LIVE_HEADER_TYPE_FLAGS = 0x364,
-	
-	/* thumbnails */
-	LIVE_HEADER_THUMB_LENGTHS = 0x1712,
-	LIVE_HEADER_THUMB1 = 0x171a,
-	LIVE_HEADER_THUMB2 = 0x571a,
-};
-
 
 struct _XGODFile
 {
@@ -109,46 +74,45 @@ hex_str (uint32_t val)
 }
 
 
-char *
-read_id (FILE *stream, size_t offset)
+void
+read_skip (FILE *stream, size_t size)
 {
-	if (fseek (stream, offset, SEEK_SET) == 0)
-	{
-		uint32_t id = 0;
-		int read = fread (&id, 4, 1, stream);
-		endian_swap (&id);
-		
-		return hex_str (id);
-	}
-	
-	return NULL;
+	fseek (stream, size, SEEK_CUR);
 }
 
 
+
 char *
-read_string (FILE *stream, size_t offset, size_t len)
+read_id (FILE *stream)
 {
-	if (fseek (stream, offset, SEEK_SET) == 0)
-	{
-		char utf16[len];
-		char utf8[len];
-		
-		char *utf16_ptr = &utf16[0];
-		char *utf8_ptr = &utf8[0];
-		
-		size_t read = fread (utf16, len, 1, stream);
-		
-		size_t utf16_len = len;
-		size_t utf8_len = len;
-		
-		iconv_t conv = iconv_open ("UTF-8", "UTF-16");
-		int ret = iconv (conv, &utf16_ptr, &utf16_len, &utf8_ptr, &utf8_len);
-		iconv_close (conv);
-		
-		return strdup (utf8);
-	}
+	uint32_t id = 0;
+	int read = fread (&id, 4, 1, stream);
+	endian_swap (&id);
 	
-	return NULL;
+	return hex_str (id);
+}
+
+
+
+char *
+read_string (FILE *stream, size_t len)
+{
+	char utf16[len];
+	char utf8[len];
+	
+	char *utf16_ptr = &utf16[0];
+	char *utf8_ptr = &utf8[0];
+	
+	size_t read = fread (utf16, len, 1, stream);
+	
+	size_t utf16_len = len;
+	size_t utf8_len = len;
+	
+	iconv_t conv = iconv_open ("UTF-8", "UTF-16");
+	int ret = iconv (conv, &utf16_ptr, &utf16_len, &utf8_ptr, &utf8_len);
+	iconv_close (conv);
+	
+	return strdup (utf8);
 }
 
 
@@ -170,8 +134,8 @@ xgod_file_free (XGODFile *file)
 	free (file->title);
 	free (file->description);
 	
-	free (file->thumb1.data);
-	free (file->thumb2.data);
+	// free (file->thumb1.data);
+	// free (file->thumb2.data);
 	
 	free (file);
 }
@@ -180,42 +144,50 @@ xgod_file_free (XGODFile *file)
 int
 xgod_file_parse (XGODFile *file, FILE *stream)
 {
-	file->media_id = read_id (stream, LIVE_HEADER_MEDIA_ID);
-	file->title_id = read_id (stream, LIVE_HEADER_TITLE_ID);
-	file->title = read_string (stream, LIVE_HEADER_TITLE, 2304);
-	file->description = read_string (stream, LIVE_HEADER_DESCRIPTION, 2432);
+	file->media_id = strdup("1234");
+	// read LIVE magic bytes and padding
+	read_skip (stream, 4);
+	read_skip (stream, 848);
+
+	file->media_id = read_id (stream);
+	read_skip (stream, 8);
+	file->title_id = read_id (stream);
+
+	read_skip (stream, 2478);
+	file->description = read_string (stream, 2432);
+	file->title = read_string (stream, 130);
+
+	// if (fseek (stream, LIVE_HEADER_TYPE_FLAGS, SEEK_SET) == 0)
+	// {
+	// 	file->platform = fgetc (stream);
+	// 	file->exec_type = fgetc (stream);
+	// 	file->disc_number = fgetc (stream);
+	// 	file->disc_count = fgetc (stream);
+	// }
 	
-	if (fseek (stream, LIVE_HEADER_TYPE_FLAGS, SEEK_SET) == 0)
-	{
-		file->platform = fgetc (stream);
-		file->exec_type = fgetc (stream);
-		file->disc_number = fgetc (stream);
-		file->disc_count = fgetc (stream);
-	}
+	// if (fseek (stream, LIVE_HEADER_THUMB_LENGTHS, SEEK_SET) == 0)
+	// {
+	// 	uint32_t len1 = 0;
+	// 	uint32_t len2 = 0;
+		
+	// 	int read = fread (&len1, 4, 1, stream);
+	// 	read = fread (&len2, 4, 1, stream);
+	// 	endian_swap (&len1);
+	// 	endian_swap (&len2);
+		
+	// 	file->thumb1.length = len1;
+	// 	file->thumb2.length = len2;
+		
+	// 	file->thumb1.data = malloc (len1);
+	// 	file->thumb2.data = malloc (len2);
+		
+	// 	read = fread (file->thumb1.data, 1, len1, stream);
+		
+	// 	if (fseek (stream, LIVE_HEADER_THUMB2, SEEK_SET) == 0)
+	// 		read = fread (file->thumb2.data, 1, len2, stream);
+	// }
 	
-	if (fseek (stream, LIVE_HEADER_THUMB_LENGTHS, SEEK_SET) == 0)
-	{
-		uint32_t len1 = 0;
-		uint32_t len2 = 0;
-		
-		int read = fread (&len1, 4, 1, stream);
-		read = fread (&len2, 4, 1, stream);
-		endian_swap (&len1);
-		endian_swap (&len2);
-		
-		file->thumb1.length = len1;
-		file->thumb2.length = len2;
-		
-		file->thumb1.data = malloc (len1);
-		file->thumb2.data = malloc (len2);
-		
-		read = fread (file->thumb1.data, 1, len1, stream);
-		
-		if (fseek (stream, LIVE_HEADER_THUMB2, SEEK_SET) == 0)
-			read = fread (file->thumb2.data, 1, len2, stream);
-	}
-	
-	return 0;
+	return 1;
 }
 
 

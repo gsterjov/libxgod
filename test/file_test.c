@@ -1,40 +1,56 @@
 
 #include "seatest/seatest.h"
 
+#include <stdlib.h>
+#include <string.h>
 #include <xgod/file.h>
+
+
+static XGODFile *god_file = NULL;
 
 
 void setup()
 {
-
+	god_file = xgod_file_new();
 }
 
 
 void teardown()
 {
-
+	xgod_file_free (god_file);
 }
 
 
 /* test file opening */
 void test_open_file()
 {
-	// FILE* stream = fopen ("testfile", "rb");
+	FILE* stream = fopen ("testfile", "rb");
 
-	// ASSERT_EQ (0, xgod_file_parse (mFile, stream));
+	assert_true (xgod_file_parse (god_file, stream));
 
-	// fclose (stream);
+	char* media_id = strdup(xgod_file_get_media_id (god_file));
+	char* title_id = strdup(xgod_file_get_title_id (god_file));
+
+	char *description = strdup(xgod_file_get_description (god_file));
+	char* title = strdup(xgod_file_get_title (god_file));
+
+	assert_string_equal ("01234567", media_id);
+	assert_string_equal ("76543210", title_id);
+	assert_string_equal ("libxgod test description", description);
+	assert_string_equal ("libxgod test title", title);
+
+	fclose (stream);
 }
 
 
 /* write a sample file */
 void test_write_file()
 {
-	FILE* stream = fopen ("sample", "wb");
+	// FILE* stream = fopen ("sample", "wb");
 
 	// ASSERT_EQ (0, xgod_file_write (mFile, stream));
 
-	fclose (stream);
+	// fclose (stream);
 }
 
 
@@ -66,9 +82,9 @@ void test_fixture_file()
 	fixture_setup (setup);
 	fixture_teardown (teardown);
 
-	test_open_file();
-	test_write_file();
-	test_defaults();
+	run_test (test_open_file);
+	run_test (test_write_file);
+	run_test (test_defaults);
 
 	test_fixture_end();
 }

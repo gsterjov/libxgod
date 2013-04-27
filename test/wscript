@@ -18,7 +18,7 @@ def build (bld):
 	bld.program (
 		source = SOURCES,
 		target = 'test',
-		includes = '../include',
+		includes = ['.', '../include'],
 		use = ['xgod'],
 		rpath = bld.env.XGOD_RPATH
 	)

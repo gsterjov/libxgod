@@ -1,0 +1,14 @@
+{
+	4 bytes (ASCII)		: LIVE (4c 49 56 45)
+
+	848 bytes			: Padding (0x00)
+
+	4 bytes (UINT)		: Media ID (Big Endian)
+	8 bytes				: Padding (0x00)
+	4 bytes (UINT)		: Title ID (Big Endian)
+
+	2478 bytes			: Padding (0x00)
+
+	2432 bytes (UTF-16)	: Game Description
+	130 bytes (UTF-16)	: Game Title
+}
