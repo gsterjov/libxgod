@@ -7,8 +7,17 @@
 	8 bytes				: Padding (0x00)
 	4 bytes (UINT)		: Title ID (Big Endian)
 
-	2478 bytes			: Padding (0x00)
+	1 byte				: Platform
+	1 byte				: Executable Type
+	1 byte				: Disc Number
+	1 byte				: Disc Count
+
+	2472 bytes			: Padding (0x00)
 
 	2432 bytes (UTF-16)	: Game Description
 	130 bytes (UTF-16)	: Game Title
+
+	4 bytes (UINT)		: Thumbnail 1 length
+	4 bytes (UINT)		: Thumbnail 2 length
+	
 }

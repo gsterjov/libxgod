@@ -24,20 +24,41 @@ void teardown()
 /* test file opening */
 void test_open_file()
 {
-	FILE* stream = fopen ("testfile", "rb");
+	FILE *stream = fopen ("testfile", "rb");
 
 	assert_true (xgod_file_parse (god_file, stream));
 
-	char* media_id = strdup(xgod_file_get_media_id (god_file));
-	char* title_id = strdup(xgod_file_get_title_id (god_file));
+	char *media_id = strdup(xgod_file_get_media_id (god_file));
+	char *title_id = strdup(xgod_file_get_title_id (god_file));
 
 	char *description = strdup(xgod_file_get_description (god_file));
-	char* title = strdup(xgod_file_get_title (god_file));
+	char *title = strdup(xgod_file_get_title (god_file));
 
 	assert_string_equal ("01234567", media_id);
 	assert_string_equal ("76543210", title_id);
 	assert_string_equal ("libxgod test description", description);
 	assert_string_equal ("libxgod test title", title);
+
+	assert_int_equal (1, xgod_file_get_disc_number (god_file));
+	assert_int_equal (1, xgod_file_get_disc_count (god_file));
+
+	fclose (stream);
+}
+
+
+/* test thumbnails */
+void test_thumbnails()
+{
+	FILE *stream = fopen ("testfile", "rb");
+
+	assert_true (xgod_file_parse (god_file, stream));
+
+	const XGODImage *thumb1 = xgod_file_get_thumbnail1 (god_file);
+	const XGODImage *thumb2 = xgod_file_get_thumbnail2 (god_file);
+
+	FILE *out = fopen ("thumb1.png", "wb");
+	fwrite (thumb1->data, 1, thumb1->length, out);
+	fclose (out);
 
 	fclose (stream);
 }
@@ -83,6 +104,7 @@ void test_fixture_file()
 	fixture_teardown (teardown);
 
 	run_test (test_open_file);
+	run_test (test_thumbnails);
 	run_test (test_write_file);
 	run_test (test_defaults);
 
