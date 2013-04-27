@@ -17,7 +17,14 @@
 	2432 bytes (UTF-16)	: Game Description
 	130 bytes (UTF-16)	: Game Title
 
-	4 bytes (UINT)		: Thumbnail 1 length
-	4 bytes (UINT)		: Thumbnail 2 length
-	
+	4 bytes (UINT)		: Thumbnail 1 Length
+	4 bytes (UINT)		: Thumbnail 2 Length
+
+	MAX 16384 bytes		: Thumbnail 1 Data
+	max - thumb1_len	: Padding (0x00)
+
+	MAX 22757 bytes		: Thumbnail 2 Data
+	max - thumb2_len	: Padding (0x00)
 }
+
+Total Size = 45055 (0xAFFF)

@@ -134,7 +134,7 @@ xgod_file_free (XGODFile *file)
 	free (file->description);
 	
 	free (file->thumb1.data);
-	// free (file->thumb2.data);
+	free (file->thumb2.data);
 	
 	free (file);
 }
@@ -181,11 +181,9 @@ xgod_file_parse (XGODFile *file, FILE *stream)
 	file->thumb2.data = malloc (len2);
 
 	fread (file->thumb1.data, 1, len1, stream);
+	read_skip (stream, 16384 - len1);
+	fread (file->thumb2.data, 1, len2, stream);
 
-	// 	if (fseek (stream, LIVE_HEADER_THUMB2, SEEK_SET) == 0)
-	// 		read = fread (file->thumb2.data, 1, len2, stream);
-	// }
-	
 	return 1;
 }
 

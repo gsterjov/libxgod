@@ -60,6 +60,10 @@ void test_thumbnails()
 	fwrite (thumb1->data, 1, thumb1->length, out);
 	fclose (out);
 
+	FILE *out2 = fopen ("thumb2.png", "wb");
+	fwrite (thumb2->data, 1, thumb2->length, out2);
+	fclose (out2);
+
 	fclose (stream);
 }
 
